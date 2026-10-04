@@ -13,6 +13,11 @@ export class UsuariosService {
         private readonly rolService: RolService
     ) {}
 
+    async findOne(id: number): Promise<UsuarioEntity | null> {
+        return this.usuarioRepository.findOne({
+            where: { id },
+        });
+    }
 
     async findByEmail(email: string, includePassword = false): Promise<UsuarioEntity | null> {
         const query = this.usuarioRepository.createQueryBuilder('usuario')
