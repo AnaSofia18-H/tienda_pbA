@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { RolService } from 'src/rol/rol.service';
+import { RolService } from '../rol/rol.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsuarioEntity } from './entities/usuario.entity';
 import { Repository } from 'typeorm';

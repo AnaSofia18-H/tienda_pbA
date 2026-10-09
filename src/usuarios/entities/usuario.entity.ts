@@ -1,4 +1,4 @@
-import { RolEntity } from "src/rol/entities/rol.entity";
+import { RolEntity } from '../../rol/entities/rol.entity';
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('usuarios')
