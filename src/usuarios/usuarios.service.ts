@@ -8,16 +8,21 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class UsuariosService {
     constructor(
-        @InjectRepository(UsuarioEntity) 
+        @InjectRepository(UsuarioEntity)
         private readonly usuarioRepository: Repository<UsuarioEntity>,
         private readonly rolService: RolService
-    ) {}
+    ) { }
 
+    async findOne(id: number): Promise<UsuarioEntity | null> {
+        return this.usuarioRepository.findOne({
+            where: { id },
+        });
+    }
 
     async findByEmail(email: string, includePassword = false): Promise<UsuarioEntity | null> {
         const query = this.usuarioRepository.createQueryBuilder('usuario')
             .leftJoinAndSelect('usuario.rol', 'rol')
-            .where('usuario.email = :email', {email});
+            .where('usuario.email = :email', { email });
 
         if (includePassword) {
             query.addSelect('usuario.password');
@@ -52,8 +57,34 @@ export class UsuariosService {
 
         //4. Retornar el usuario creado y omitir la contraseña en la respuesta
         const { password, ...usuarioSinPassword } = guardado;
-        
+
         return usuarioSinPassword;
     }
 
+    //Guardar el codigo OTP y la fecha de expiracion en la base de datos
+    async saveOtpCode(usuarioId: number, otpCode: string, otpExpiresAt: Date): Promise<void> {
+        const usuario = await this.findOne(usuarioId);
+        if (!usuario) {
+            throw new Error('Usuario no encontrado');
+        }
+        await this.usuarioRepository.update(usuarioId,
+            {
+                otpCode,
+                otpExpiresAt
+            });
+    }
+
+    //Limpiar el codigo OTP y la fecha de expiracion en la base de datos
+    async cleanOtpCode(usuarioId: number, otpCode: string, otpExpiresAt: Date): Promise<void> {
+        const usuario = await this.findOne(usuarioId);
+        if (!usuario) {
+            throw new Error('Usuario no encontrado');
+        }
+        await this.usuarioRepository.update(usuarioId,
+            {
+                otpCode: null,
+                otpExpiresAt: null
+            });
+    }
+    
 }

@@ -19,7 +19,7 @@ export class RolesGuard implements CanActivate {
     const { user } = context.switchToHttp().getRequest();
     
     // 4. Comparar el rol del usuario con los permitidos
-    if (!user || !rolesRequeridos.includes(user.rol)) {
+    if (!user || !rolesRequeridos.includes(user.rol?.nombre)) {
         throw new ForbiddenException(
         `Acceso denegado: se requiere rol ${rolesRequeridos.join(' o ')}`,
     );

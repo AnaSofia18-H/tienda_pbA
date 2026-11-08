@@ -3,14 +3,17 @@ import { RegisterDto } from './dto/register.dto';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
-import { emit } from 'process';
 import { JwtService } from '@nestjs/jwt';
+import { MailService } from '../mail/mail.service';
+import { SolicitarOtpDto } from './dto/solicitar-dto';
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly usuariosService: UsuariosService,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
+        private readonly mailService: MailService,
+
     ) {} //Inyectamos el servicio de usuarios para poder crear un usuario en la base de datos
 
     async register(registerDto: RegisterDto) {
@@ -64,5 +67,36 @@ export class AuthService {
             message: 'Inicio de Sesion exitoso',
             access_token: token,
         }
+    }
+
+    //Primer paso crear el metodo para solicitar codigo otp
+    async solicitarCodigoOtp(solicitarOtpDto: SolicitarOtpDto): Promise<{ message: string }> {
+        //1. Buscar el usuario por correo electrónico
+        const usuario = await this.usuariosService.findByEmail(solicitarOtpDto.email);
+        if (!usuario) {
+            throw new UnauthorizedException('El correo electrónico no está registrado');
+        }
+
+        //2. Validar que la cuenta esté activa
+        if (!usuario.activo) {
+            throw new UnauthorizedException('La cuenta del usuario no se encuentra activa');
+        }
+
+        //3. Generar un código OTP de 6 dígitos
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+        //4. Establecer la fecha de expiración del código OTP (10 minutos a partir de ahora)
+        const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos en milisegundos
+
+        //5. Guardar el código OTP y la fecha de expiración en la base de datos
+        await this.usuariosService.saveOtpCode(usuario.id, otpCode, otpExpiresAt);
+
+        //6. Enviar el código OTP por correo electrónico
+        await this.mailService.sendOtpEmail(usuario.email, otpCode);
+
+        return {
+            message: 'Código OTP enviado exitosamente al correo electrónico',
+        }
+
     }
 }

@@ -21,6 +21,13 @@ export class UsuarioEntity {
 
     @Column()
     rolId!: number;
+    
+    @Column({type: 'varchar', length: 6, nullable: true})
+    otpCode!: string | null;
+
+    @Column({type: 'datetime', nullable: true})
+    otpExpiresAt!: Date | null;
+
 
     @CreateDateColumn()
     createdAt!: Date;
