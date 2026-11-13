@@ -14,7 +14,15 @@ export class MailService {
 	) {}
 
 	async sendOtpEmail(to: string, otpCode: string): Promise<void> {
-		const template = await this.loadOtpTemplate();
+		await this.enviarCorreo(to, 'Código de inicio de sesión', 'otp.hbs', otpCode);
+	}
+
+	async sendRecuperacionEmail(to: string, otpCode: string): Promise<void> {
+		await this.enviarCorreo(to, 'Recupera tu contraseña', 'recuperar-password.hbs', otpCode);
+	}
+
+	private async enviarCorreo(to: string, subject: string, plantilla: string, otpCode: string): Promise<void> {
+		const template = await this.loadTemplate(plantilla);
 		const html = compile(template)({ otpCode });
 		const from =
 			this.configService.get<string>('MAIL_FROM') ||
@@ -23,15 +31,15 @@ export class MailService {
 		await this.transporter.sendMail({
 			from,
 			to,
-			subject: 'Código de inicio de sesión',
+			subject,
 			html,
 		});
 	}
 
-	private async loadOtpTemplate(): Promise<string> {
+	private async loadTemplate(plantilla: string): Promise<string> {
 		const templatePaths = [
-			join(__dirname, 'template', 'otp.hbs'),
-			join(process.cwd(), 'src', 'mail', 'template', 'otp.hbs'),
+			join(__dirname, 'template', plantilla),
+			join(process.cwd(), 'src', 'mail', 'template', plantilla),
 		];
 
 		for (const templatePath of templatePaths) {
@@ -44,6 +52,6 @@ export class MailService {
 			}
 		}
 
-		throw new Error('No se encontró la plantilla de correo OTP.');
+		throw new Error(`No se encontró la plantilla de correo ${plantilla}.`);
 	}
 }

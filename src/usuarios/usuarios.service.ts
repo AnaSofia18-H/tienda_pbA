@@ -75,7 +75,7 @@ export class UsuariosService {
     }
 
     //Limpiar el codigo OTP y la fecha de expiracion en la base de datos
-    async cleanOtpCode(usuarioId: number, otpCode: string, otpExpiresAt: Date): Promise<void> {
+    async cleanOtpCode(usuarioId: number): Promise<void> {
         const usuario = await this.findOne(usuarioId);
         if (!usuario) {
             throw new Error('Usuario no encontrado');
@@ -86,5 +86,12 @@ export class UsuariosService {
                 otpExpiresAt: null
             });
     }
-    
+
+    async updatePassword(usuarioId: number, passwordHash: string): Promise<void> {
+        await this.usuarioRepository.update(usuarioId, {
+            password: passwordHash,
+            otpCode: null,
+            otpExpiresAt: null
+        });
+    }
 }

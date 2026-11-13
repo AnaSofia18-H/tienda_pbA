@@ -7,6 +7,9 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiUnauthorizedResponse,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -18,11 +21,14 @@ import { Producto } from './entities/producto.entity';
 
 @Controller('productos')
 @ApiTags('Productos')
+@ApiBearerAuth('bearer')
+@ApiUnauthorizedResponse({ description: 'Token ausente, inválido o expirado' })
 export class ProductosController {
   constructor(private readonly productosService: ProductosService) {}
   // Solo ADMIN puede crear
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @ApiForbiddenResponse({ description: 'Solo el rol ADMIN puede hacer esta acción' })
   @Post()
   @ApiOperation({ summary: 'Crear un producto' })
   @ApiCreatedResponse({
@@ -61,6 +67,7 @@ export class ProductosController {
   // Solo ADMIN puede editar
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @ApiForbiddenResponse({ description: 'Solo el rol ADMIN puede hacer esta acción' })
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar un producto' })
   @ApiParam({ name: 'id', type: Number, example: 1, description: 'ID del producto' })
@@ -84,6 +91,7 @@ export class ProductosController {
   // Solo ADMIN puede eliminar
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @ApiForbiddenResponse({ description: 'Solo el rol ADMIN puede hacer esta acción' })
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar un producto' })
   @ApiParam({ name: 'id', type: Number, example: 1, description: 'ID del producto' })
