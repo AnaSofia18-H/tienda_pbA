@@ -67,6 +67,7 @@ export class AuthController {
     })
     @ApiBadRequestResponse({ description: 'El correo no es válido' })
     @ApiUnauthorizedResponse({ description: 'Correo no registrado o cuenta inactiva' })
+    @ApiServiceUnavailableResponse({ description: 'No se pudo enviar el correo' })
     solicitarOtp(@Body() solicitarOtpDto: SolicitarOtpDto) {
         return this.authService.solicitarCodigoOtp(solicitarOtpDto);
     }

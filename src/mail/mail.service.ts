@@ -22,8 +22,11 @@ export class MailService {
 	}
 
 	private async enviarCorreo(to: string, subject: string, plantilla: string, otpCode: string): Promise<void> {
-		const template = await this.loadTemplate(plantilla);
+		const template = (await this.loadFile(plantilla)).toString('utf8');
 		const html = compile(template)({ otpCode });
+		const destellos = await this.loadFile('destellos.gif');
+		const avatar = await this.loadFile('ana_chopper.gif');
+		const gato = await this.loadFile('gato.gif');
 		const from =
 			this.configService.get<string>('MAIL_FROM') ||
 			this.configService.getOrThrow<string>('MAIL_USER');
@@ -33,18 +36,38 @@ export class MailService {
 			to,
 			subject,
 			html,
+			attachments: [
+				{
+					filename: 'destellos.gif',
+					content: destellos,
+					contentType: 'image/gif',
+					cid: 'destellos',
+				},
+				{
+					filename: 'ana_chopper.gif',
+					content: avatar,
+					contentType: 'image/gif',
+					cid: 'avatar',
+				},
+				{
+					filename: 'gato.gif',
+					content: gato,
+					contentType: 'image/gif',
+					cid: 'gato',
+				},
+			],
 		});
 	}
 
-	private async loadTemplate(plantilla: string): Promise<string> {
-		const templatePaths = [
-			join(__dirname, 'template', plantilla),
-			join(process.cwd(), 'src', 'mail', 'template', plantilla),
+	private async loadFile(archivo: string): Promise<Buffer> {
+		const filePaths = [
+			join(__dirname, 'template', archivo),
+			join(process.cwd(), 'src', 'mail', 'template', archivo),
 		];
 
-		for (const templatePath of templatePaths) {
+		for (const filePath of filePaths) {
 			try {
-				return await readFile(templatePath, 'utf8');
+				return await readFile(filePath);
 			} catch (error) {
 				if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
 					throw error;
@@ -52,6 +75,6 @@ export class MailService {
 			}
 		}
 
-		throw new Error(`No se encontró la plantilla de correo ${plantilla}.`);
+		throw new Error(`No se encontró el archivo de correo ${archivo}.`);
 	}
 }

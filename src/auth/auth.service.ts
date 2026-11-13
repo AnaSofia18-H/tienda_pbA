@@ -96,7 +96,12 @@ export class AuthService {
         await this.usuariosService.saveOtpCode(usuario.id, otpCode, otpExpiresAt);
 
         //6. Enviar el código OTP por correo electrónico
-        await this.mailService.sendOtpEmail(usuario.email, otpCode);
+        try {
+            await this.mailService.sendOtpEmail(usuario.email, otpCode);
+        } catch (error) {
+            this.logger.error(`Error al enviar el correo: ${(error as NodeJS.ErrnoException).code ?? ''} ${(error as Error).message}`, (error as Error).stack);
+            throw new ServiceUnavailableException('No se pudo enviar el correo, intenta de nuevo en unos minutos');
+        }
 
         return {
             message: 'Código OTP enviado exitosamente al correo electrónico',
